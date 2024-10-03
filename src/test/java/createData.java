@@ -23,7 +23,24 @@ public class createData {
         }
     }
 
+    public static void createCenters(int K){
+        Random rand = new Random();
+        File data = new File("centers.csv");
+        try (PrintWriter writer = new PrintWriter(new FileWriter(data))) {
+            for(int i=1; i<=K; i++){
+                int x = rand.nextInt(10000);
+                int y = rand.nextInt(10000);
+                int z = rand.nextInt(10000);
+                writer.println( x + "," + y + "," + z);
+            }
+            System.out.println("CSV file written successfully.");
+        } catch (IOException e) {
+            System.out.println("An error occurred while writing the CSV file.");
+        }
+    }
+
     public static void main(String[] args) {
-        createClustering();
+        //createClustering();
+        createCenters(5);
     }
 }
