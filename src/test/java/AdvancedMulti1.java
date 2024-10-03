@@ -1,0 +1,2 @@
+public class AdvancedMulti1 {
+}
