@@ -2,7 +2,7 @@ import java.lang.Math;
 
 public class euclideanDistance {
 
-    public static int euclidianDistance (int[] point1,int[] point2) {
+    public static int distance (int[] point1,int[] point2) {
         int x1 = point1[0];
         int y1 = point1[1];
         int z1 = point1[2];

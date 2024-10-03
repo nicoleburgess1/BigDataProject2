@@ -43,7 +43,7 @@ public class Task1 {
                 int minDistance = -1;
                 int[] closestCenter = null;
                 for(int j = 0; j < centers[i].length; j++){
-                    int distance = euclideanDistance.euclidianDistance(points[i], centers[j]);
+                    int distance = euclideanDistance.distance(points[i], centers[j]);
                     if(minDistance == -1 || distance < minDistance){
                         closestCenter = centers[j];
                         minDistance = distance;
@@ -73,30 +73,18 @@ public class Task1 {
         }
     }
 
-    public void debug(String[] args) throws Exception {
-        Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "Education Count");
-        job.setJarByClass(Task1.class);
-        job.setMapperClass(TokenizerMapper.class);
-        job.setCombinerClass(IntSumReducer.class);
-        job.setReducerClass(IntSumReducer.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
-    }
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "Education Count");
+        Job job = Job.getInstance(conf, "Task 1");
         job.setJarByClass(Task1.class);
         job.setMapperClass(TokenizerMapper.class);
-        job.setCombinerClass(IntSumReducer.class);
-        job.setReducerClass(IntSumReducer.class);
+        //job.setCombinerClass(IntSumReducer.class);
+        job.setNumReduceTasks(0);
+        //job.setReducerClass(IntSumReducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
-        FileInputFormat.addInputPath(job, new Path("input/LinkBookPage.csv"));
+        job.setOutputValueClass(Text.class);
+        FileInputFormat.addInputPath(job, new Path("clustering.csv"));
         FileOutputFormat.setOutputPath(job, new Path("TaskAOutput"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
