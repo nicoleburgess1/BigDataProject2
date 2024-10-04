@@ -17,6 +17,10 @@ import java.util.Random;
 
 public class Task1 {
 
+    public static Text convertPointToText(int[] point){
+        return new Text(point[0]+" "+point[1]+" "+point[2]);
+    }
+
     public static class TokenizerMapper
             extends Mapper<Object, Text, Text, Text>{
 
@@ -51,11 +55,8 @@ public class Task1 {
                         minDistance = distance;
                     }
                 }
-                context.write(convertPointToText(points[i]), convertPointToText(closestCenter));
+                context.write(convertPointToText(closestCenter),convertPointToText(points[i]));
             }
-        }
-        public Text convertPointToText(int[] point){
-            return new Text(point[0]+","+point[1]+","+point[2]);
         }
 
         protected void setup(Context context) throws IOException, InterruptedException {
@@ -91,19 +92,30 @@ public class Task1 {
 
     }
 
-    public static class IntSumReducer
-            extends Reducer<Text,IntWritable,Text,IntWritable> {
-        private IntWritable result = new IntWritable();
-
-        public void reduce(Text key, Iterable<IntWritable> values,
+    public static class KMeansReducer
+            extends Reducer<Text,Text,Text,Text> {
+        public void reduce(Text key, Iterable<Text> values,
                            Context context
         ) throws IOException, InterruptedException {
-            int sum = 0;
-            for (IntWritable val : values) {
-                sum += val.get();
+            int numPoints = 0;
+            int[] sum = {0,0,0};
+            for (Text val : values) {
+                String[] stringPoint = val.toString().split(" ");
+                int[] point = new int[stringPoint.length];
+                for(int i = 0; i < point.length; i++){
+                    point[i] = Integer.parseInt(stringPoint[i]);
+                }
+                for(int i=0; i<3; i++){
+                    sum[i] += point[i];
+                }
+                numPoints++;
             }
-            result.set(sum);
-            context.write(key, result);
+
+            for(int i=0; i<sum.length; i++){
+                sum[i] /= numPoints;
+            }
+            //result.set(sum);
+            context.write(convertPointToText(sum), new Text("1"));
         }
     }
 
@@ -113,9 +125,8 @@ public class Task1 {
         Job job = Job.getInstance(conf, "Task 1");
         job.setJarByClass(Task1.class);
         job.setMapperClass(TokenizerMapper.class);
-        //job.setCombinerClass(IntSumReducer.class);
-        job.setNumReduceTasks(0);
-        //job.setReducerClass(IntSumReducer.class);
+        //job.setNumReduceTasks(0);
+        job.setReducerClass(KMeansReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, new Path("clustering.csv"));
