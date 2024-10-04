@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -15,24 +16,20 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Task2 {
+public class Task3 {
 
     public static Text convertPointToText(int[] point){
         return new Text(point[0]+" "+point[1]+" "+point[2]);
     }
 
+    public static int[][] firstCenters;
     public static class FirstIterationMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private final static IntWritable one = new IntWritable(1);
         private static int[][] centers = new int[5][];
-
-        //private Text Education = new Text();
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
-            Random rand = new Random();
-            //StringTokenizer itr = new StringTokenizer(value.toString());
             String dataset = value.toString();
             String[] datapoint = dataset.split("\n");
             String[][] columns = new String[datapoint.length][];
@@ -61,6 +58,7 @@ public class Task2 {
 
         protected void setup(Context context) throws IOException, InterruptedException {
             centers = loadInitialCenters();
+            firstCenters=centers;
         }
 
         public int[][] loadInitialCenters() throws IOException {
@@ -94,10 +92,7 @@ public class Task2 {
     public static class SubsequentIterationMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private final static IntWritable one = new IntWritable(1);
         private static int[][] centers = new int[5][];
-
-        //private Text Education = new Text();
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
@@ -133,10 +128,11 @@ public class Task2 {
 
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
+            Random rand = new Random();
             int[][] center = new int[5][];
 
             // Reading the file
-            try (BufferedReader br = new BufferedReader(new FileReader("TaskB/TaskBOutput" + (r-1) + "/part-r-00000"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("TaskC/TaskCOutput" + (r-1) + "/part-r-00000"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     lines.add(line);
@@ -186,12 +182,13 @@ public class Task2 {
 
     public static int r;
     public static void main(String[] args) throws Exception {
-        int R = 10;
+        int R = 20;
         Configuration conf = new Configuration();
+        boolean finished = false;
 
-        for(r=0; r<R; r++){
-            Job job = Job.getInstance(conf, "Task 2 - Iteration " + r);
-            job.setJarByClass(Task2.class);
+        for(r=0; r<R && !finished; r++){
+            Job job = Job.getInstance(conf, "Task 3 - Iteration " + r);
+            job.setJarByClass(Task3.class);
             job.setReducerClass(KMeansReducer.class);
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(Text.class);
@@ -202,13 +199,56 @@ public class Task2 {
                 job.setMapperClass(SubsequentIterationMapper.class);
             }
             FileInputFormat.addInputPath(job, new Path("clustering.csv"));
-            FileOutputFormat.setOutputPath(job, new Path("TaskB/TaskBOutput" + r));
+            FileOutputFormat.setOutputPath(job, new Path("TaskC/TaskCOutput" + r));
             if (!job.waitForCompletion(true)) {
                 System.exit(1);
             }
+
+            finished = isFinished(r);
         }
 
         System.exit(0);
 
+    }
+
+    public static boolean isFinished(int r) throws IOException {
+        int[][] oldCenters, newCenters;
+        if(r==0)
+            return false;
+        if(r==1){
+            oldCenters=firstCenters;
+        }
+        else
+            oldCenters=getListOfCenters("TaskC/TaskCOutput" + (r-1) + "/part-r-00000");
+        newCenters= getListOfCenters("TaskC/TaskCOutput" + (r) + "/part-r-00000");
+        for(int i=0; i<oldCenters.length; i++){
+            if(euclideanDistance.distance(oldCenters[i], newCenters[i]) > 1)
+                return false;
+        }
+        return true;
+    }
+
+    public static int[][] getListOfCenters(String path) throws IOException {
+        ArrayList<String> lines = new ArrayList<>();
+        int[][] center = new int[5][];
+
+        // Reading the file
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+        }
+
+        for(int i=0; i<5; i++){
+            String currCenter = lines.get(i).split("\t")[0];
+            String[] currLine = currCenter.split(" ");
+            int[] currLineInt = new int[currLine.length];
+            for(int j=0; j<currLine.length; j++){
+                currLineInt[j] = Integer.parseInt(currLine[j]);
+            }
+            center[i] = currLineInt;
+        }
+        return center;
     }
 }

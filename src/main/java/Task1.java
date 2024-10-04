@@ -31,8 +31,6 @@ public class Task1 {
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
-            Random rand = new Random();
-            //StringTokenizer itr = new StringTokenizer(value.toString());
             String dataset = value.toString();
             String[] datapoint = dataset.split("\n");
             String[][] columns = new String[datapoint.length][];
@@ -60,7 +58,6 @@ public class Task1 {
         }
 
         protected void setup(Context context) throws IOException, InterruptedException {
-            // Load centroids from a file or the job configuration
             centers = loadInitialCenters();
         }
 
@@ -114,7 +111,6 @@ public class Task1 {
             for(int i=0; i<sum.length; i++){
                 sum[i] /= numPoints;
             }
-            //result.set(sum);
             context.write(convertPointToText(sum), new Text("1"));
         }
     }
@@ -125,7 +121,6 @@ public class Task1 {
         Job job = Job.getInstance(conf, "Task 1");
         job.setJarByClass(Task1.class);
         job.setMapperClass(TokenizerMapper.class);
-        //job.setNumReduceTasks(0);
         job.setReducerClass(KMeansReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
