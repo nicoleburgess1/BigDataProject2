@@ -1,3 +1,5 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -9,6 +11,8 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+import java.util.ArrayList;
 import java.util.Random;
 
 public class Task1 {
@@ -17,6 +21,8 @@ public class Task1 {
             extends Mapper<Object, Text, Text, Text>{
 
         private final static IntWritable one = new IntWritable(1);
+        private static int[][] centers = new int[5][];
+
         //private Text Education = new Text();
 
         public void map(Object key, Text value, Context context
@@ -24,25 +30,21 @@ public class Task1 {
             Random rand = new Random();
             //StringTokenizer itr = new StringTokenizer(value.toString());
             String dataset = value.toString();
-            String[] datapoint = dataset.split("/n");
+            String[] datapoint = dataset.split("\n");
             String[][] columns = new String[datapoint.length][];
             int[][] points = new int[datapoint.length][];
             for(int i = 0; i < columns.length; i++){
                 columns[i] = datapoint[i].split(",");
+                points[i] = new int[columns[i].length];
                 for(int j = 0; j < columns[i].length; j++){
                     points[i][j] = Integer.parseInt(columns[i][j]);
                 }
             }
 
-            int[][] centers = new int[5][];
-            for(int i = 0; i < centers.length; i++){
-                centers[i] = points[rand.nextInt(points.length)];
-            }
-
             for(int i = 0; i < points.length; i++){
                 int minDistance = -1;
                 int[] closestCenter = null;
-                for(int j = 0; j < centers[i].length; j++){
+                for(int j = 0; j < centers.length; j++){
                     int distance = euclideanDistance.distance(points[i], centers[j]);
                     if(minDistance == -1 || distance < minDistance){
                         closestCenter = centers[j];
@@ -55,6 +57,38 @@ public class Task1 {
         public Text convertPointToText(int[] point){
             return new Text(point[0]+","+point[1]+","+point[2]);
         }
+
+        protected void setup(Context context) throws IOException, InterruptedException {
+            // Load centroids from a file or the job configuration
+            centers = loadInitialCenters();
+        }
+
+        public int[][] loadInitialCenters() throws IOException {
+            ArrayList<String> lines = new ArrayList<>();
+            Random rand = new Random();
+            int[][] center = new int[5][];
+
+            // Reading the file
+            try (BufferedReader br = new BufferedReader(new FileReader("clustering.csv"))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    lines.add(line);
+                }
+            }
+
+            for(int i=0; i<5; i++){
+                int lineNum = rand.nextInt(lines.size());
+                String[] currLine = lines.get(lineNum).split(",");
+                int[] currLineInt = new int[currLine.length];
+                for(int j=0; j<currLine.length; j++){
+                    currLineInt[j] = Integer.parseInt(currLine[j]);
+                }
+                center[i] = currLineInt;
+                System.out.println(center[i][0] + " " + center[i][1] + " " + center[i][2]);
+            }
+            return center;
+        }
+
     }
 
     public static class IntSumReducer
