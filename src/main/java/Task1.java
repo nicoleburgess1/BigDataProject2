@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Task1 {
-
+    static int k = 5;
     public static Text convertPointToText(int[] point){
         return new Text(point[0]+" "+point[1]+" "+point[2]);
     }
@@ -25,7 +25,7 @@ public class Task1 {
             extends Mapper<Object, Text, Text, Text>{
 
         private final static IntWritable one = new IntWritable(1);
-        private static int[][] centers = new int[5][];
+        private static int[][] centers = new int[k][];
 
         //private Text Education = new Text();
 
@@ -64,7 +64,7 @@ public class Task1 {
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
             Random rand = new Random();
-            int[][] center = new int[5][];
+            int[][] center = new int[k][];
 
             // Reading the file
             try (BufferedReader br = new BufferedReader(new FileReader("clustering.csv"))) {
@@ -74,7 +74,7 @@ public class Task1 {
                 }
             }
 
-            for(int i=0; i<5; i++){
+            for(int i=0; i<k; i++){
                 int lineNum = rand.nextInt(lines.size());
                 String[] currLine = lines.get(lineNum).split(",");
                 int[] currLineInt = new int[currLine.length];

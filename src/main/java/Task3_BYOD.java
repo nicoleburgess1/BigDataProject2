@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Task3_BYOD {
-
+    static int k = 2;
     public static Text convertPointToText(int[] point){
         return new Text(point[0]+" "+point[1]+" "+point[2]+ " "+ point[3]);
     }
@@ -24,7 +24,7 @@ public class Task3_BYOD {
             extends Mapper<Object, Text, Text, Text>{
 
         private final static IntWritable one = new IntWritable(1);
-        private static int[][] centers = new int[2][];
+        private static int[][] centers = new int[k][];
 
         //private Text Education = new Text();
 
@@ -45,10 +45,10 @@ public class Task3_BYOD {
             }
 
             for(int i = 0; i < points.length; i++){
-                int minDistance = -1;
+                double minDistance = -1;
                 int[] closestCenter = null;
                 for(int j = 0; j < centers.length; j++){
-                    int distance = euclideanDistance.distance4(points[i], centers[j]);
+                    double distance = euclideanDistance.distance4(points[i], centers[j]);
                     if(minDistance == -1 || distance < minDistance){
                         closestCenter = centers[j];
                         minDistance = distance;
@@ -66,7 +66,7 @@ public class Task3_BYOD {
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
             Random rand = new Random();
-            int[][] center = new int[2][];
+            int[][] center = new int[k][];
 
             // Reading the file
             try (BufferedReader br = new BufferedReader(new FileReader("penguins.csv"))) {
@@ -76,7 +76,7 @@ public class Task3_BYOD {
                 }
             }
 
-            for(int i=0; i<2; i++){
+            for(int i=0; i<k; i++){
                 int lineNum = rand.nextInt(lines.size());
                 String[] currLine = lines.get(lineNum).split(",");
                 int[] currLineInt = new int[currLine.length];
@@ -95,7 +95,7 @@ public class Task3_BYOD {
             extends Mapper<Object, Text, Text, Text>{
 
         private final static IntWritable one = new IntWritable(1);
-        private static int[][] centers = new int[2][];
+        private static int[][] centers = new int[k][];
 
         //private Text Education = new Text();
 
@@ -114,10 +114,10 @@ public class Task3_BYOD {
             }
 
             for(int i = 0; i < points.length; i++){
-                int minDistance = -1;
+                double minDistance = -1;
                 int[] closestCenter = null;
                 for(int j = 0; j < centers.length; j++){
-                    int distance = euclideanDistance.distance4(points[i], centers[j]);
+                    double distance = euclideanDistance.distance4(points[i], centers[j]);
                     if(minDistance == -1 || distance < minDistance){
                         closestCenter = centers[j];
                         minDistance = distance;
@@ -133,7 +133,7 @@ public class Task3_BYOD {
 
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
-            int[][] center = new int[2][];
+            int[][] center = new int[k][];
 
             // Reading the file
             try (BufferedReader br = new BufferedReader(new FileReader("Task3_BYOD/Task3_BYOD_Output" + (r-1) + "/part-r-00000"))) {
@@ -143,7 +143,7 @@ public class Task3_BYOD {
                 }
             }
 
-            for(int i=0; i<2; i++){
+            for(int i=0; i<k; i++){
                 String currCenter = lines.get(i).split("\t")[0];
                 String[] currLine = currCenter.split(" ");
                 int[] currLineInt = new int[currLine.length];
@@ -231,7 +231,7 @@ public class Task3_BYOD {
     }
     public static int[][] getListOfCenters(String path) throws IOException {
         ArrayList<String> lines = new ArrayList<>();
-        int[][] center = new int[2][];
+        int[][] center = new int[k][];
 
         // Reading the file
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -241,7 +241,7 @@ public class Task3_BYOD {
             }
         }
 
-        for(int i=0; i<2; i++){
+        for(int i=0; i<k; i++){
             String currCenter = lines.get(i).split("\t")[0];
             String[] currLine = currCenter.split(" ");
             int[] currLineInt = new int[currLine.length];

@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Task3 {
-
+    static int k = 5;
     public static Text convertPointToText(int[] point){
         return new Text(point[0]+" "+point[1]+" "+point[2]);
     }
@@ -26,7 +26,7 @@ public class Task3 {
     public static class FirstIterationMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private static int[][] centers = new int[5][];
+        private static int[][] centers = new int[k][];
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
@@ -64,7 +64,7 @@ public class Task3 {
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
             Random rand = new Random();
-            int[][] center = new int[5][];
+            int[][] center = new int[k][];
 
             // Reading the file
             try (BufferedReader br = new BufferedReader(new FileReader("clustering.csv"))) {
@@ -74,7 +74,7 @@ public class Task3 {
                 }
             }
 
-            for(int i=0; i<5; i++){
+            for(int i=0; i<k; i++){
                 int lineNum = rand.nextInt(lines.size());
                 String[] currLine = lines.get(lineNum).split(",");
                 int[] currLineInt = new int[currLine.length];
@@ -92,7 +92,7 @@ public class Task3 {
     public static class SubsequentIterationMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private static int[][] centers = new int[5][];
+        private static int[][] centers = new int[k][];
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
@@ -129,7 +129,7 @@ public class Task3 {
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
             Random rand = new Random();
-            int[][] center = new int[5][];
+            int[][] center = new int[k][];
 
             // Reading the file
             try (BufferedReader br = new BufferedReader(new FileReader("TaskC/TaskCOutput" + (r-1) + "/part-r-00000"))) {
@@ -139,7 +139,7 @@ public class Task3 {
                 }
             }
 
-            for(int i=0; i<5; i++){
+            for(int i=0; i<k; i++){
                 String currCenter = lines.get(i).split("\t")[0];
                 String[] currLine = currCenter.split(" ");
                 int[] currLineInt = new int[currLine.length];
@@ -230,7 +230,7 @@ public class Task3 {
 
     public static int[][] getListOfCenters(String path) throws IOException {
         ArrayList<String> lines = new ArrayList<>();
-        int[][] center = new int[5][];
+        int[][] center = new int[k][];
 
         // Reading the file
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
@@ -240,7 +240,7 @@ public class Task3 {
             }
         }
 
-        for(int i=0; i<5; i++){
+        for(int i=0; i<k; i++){
             String currCenter = lines.get(i).split("\t")[0];
             String[] currLine = currCenter.split(" ");
             int[] currLineInt = new int[currLine.length];
