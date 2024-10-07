@@ -132,7 +132,7 @@ public class Task3 {
             int[][] center = new int[k][];
 
             // Reading the file
-            try (BufferedReader br = new BufferedReader(new FileReader("TaskC/TaskCOutput" + (r-1) + "/part-r-00000"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("Task3/Task3Output" + (r-1) + "/part-r-00000"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     lines.add(line);
@@ -199,7 +199,7 @@ public class Task3 {
                 job.setMapperClass(SubsequentIterationMapper.class);
             }
             FileInputFormat.addInputPath(job, new Path("clustering.csv"));
-            FileOutputFormat.setOutputPath(job, new Path("TaskC/TaskCOutput" + r));
+            FileOutputFormat.setOutputPath(job, new Path("Task3/Task3Output" + r));
             if (!job.waitForCompletion(true)) {
                 System.exit(1);
             }
@@ -219,8 +219,8 @@ public class Task3 {
             oldCenters=firstCenters;
         }
         else
-            oldCenters=getListOfCenters("TaskC/TaskCOutput" + (r-1) + "/part-r-00000");
-        newCenters= getListOfCenters("TaskC/TaskCOutput" + (r) + "/part-r-00000");
+            oldCenters=getListOfCenters("Task3/Task3Output" + (r-1) + "/part-r-00000");
+        newCenters= getListOfCenters("Task3/Task3Output" + (r) + "/part-r-00000");
         for(int i=0; i<oldCenters.length; i++){
             if(euclideanDistance.distance(oldCenters[i], newCenters[i]) > 1)
                 return false;

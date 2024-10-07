@@ -125,7 +125,7 @@ public class Task1 {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, new Path("clustering.csv"));
-        FileOutputFormat.setOutputPath(job, new Path("TaskAOutput"));
+        FileOutputFormat.setOutputPath(job, new Path("Task1Output"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

@@ -202,7 +202,7 @@ public class Task2 {
                 job.setMapperClass(SubsequentIterationMapper.class);
             }
             FileInputFormat.addInputPath(job, new Path("clustering.csv"));
-            FileOutputFormat.setOutputPath(job, new Path("TaskB/TaskBOutput" + r));
+            FileOutputFormat.setOutputPath(job, new Path("Task2/Task2Output" + r));
             if (!job.waitForCompletion(true)) {
                 System.exit(1);
             }
