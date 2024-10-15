@@ -10,3 +10,21 @@ in the activity
 */
 
 
+accesslogs = LOAD 'input/accessLogs.csv'
+                USING PigStorage(',')
+                AS (id:int, bywho:int, whatpage:int, typeofaccess:chararray, accesstime:int);
+
+activity = FILTER accessLogs by accesstime < 129600;
+
+LinkBookPages = LOAD 'input/LinkBookPage.csv'
+                USING PigStorage(',')
+                AS (id:int, name:chararray, occupation:chararray, ncode:int, highestEdu:chararray);
+
+j = JOIN LinkBookPages BY id LEFT OUTER, activity BY id;
+
+page = FILTER LinkedBookPages by j::id is NULL;
+
+output = FOREACH j GENERATE
+            gage::id as id,  page::name as name;
+
+STORE output INTO 'taskG.csv' USING PigStorage(',');

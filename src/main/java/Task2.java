@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Task2 {
-    static int k = 5;
+
     public static Text convertPointToText(int[] point){
         return new Text(point[0]+" "+point[1]+" "+point[2]);
     }
@@ -24,15 +24,11 @@ public class Task2 {
     public static class FirstIterationMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private final static IntWritable one = new IntWritable(1);
-        private static int[][] centers = new int[k][];
+        private static int[][] centers = new int[5][];
 
-        //private Text Education = new Text();
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
-            Random rand = new Random();
-            //StringTokenizer itr = new StringTokenizer(value.toString());
             String dataset = value.toString();
             String[] datapoint = dataset.split("\n");
             String[][] columns = new String[datapoint.length][];
@@ -60,13 +56,14 @@ public class Task2 {
         }
 
         protected void setup(Context context) throws IOException, InterruptedException {
+            // Load centroids from a file or the job configuration
             centers = loadInitialCenters();
         }
 
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
             Random rand = new Random();
-            int[][] center = new int[k][];
+            int[][] center = new int[5][];
 
             // Reading the file
             try (BufferedReader br = new BufferedReader(new FileReader("clustering.csv"))) {
@@ -76,7 +73,7 @@ public class Task2 {
                 }
             }
 
-            for(int i=0; i<k; i++){
+            for(int i=0; i<5; i++){
                 int lineNum = rand.nextInt(lines.size());
                 String[] currLine = lines.get(lineNum).split(",");
                 int[] currLineInt = new int[currLine.length];
@@ -95,7 +92,7 @@ public class Task2 {
             extends Mapper<Object, Text, Text, Text>{
 
         private final static IntWritable one = new IntWritable(1);
-        private static int[][] centers = new int[k][];
+        private static int[][] centers = new int[5][];
 
         //private Text Education = new Text();
 
@@ -128,22 +125,24 @@ public class Task2 {
         }
 
         protected void setup(Context context) throws IOException, InterruptedException {
+            // Load centroids from a file or the job configuration
             centers = loadInitialCenters();
         }
 
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
-            int[][] center = new int[k][];
+            Random rand = new Random();
+            int[][] center = new int[5][];
 
             // Reading the file
-            try (BufferedReader br = new BufferedReader(new FileReader("TaskB/TaskBOutput" + (r-1) + "/part-r-00000"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("Task2/Task2Output" + (r-1) + "/part-r-00000"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     lines.add(line);
                 }
             }
 
-            for(int i=0; i<k; i++){
+            for(int i=0; i<5; i++){
                 String currCenter = lines.get(i).split("\t")[0];
                 String[] currLine = currCenter.split(" ");
                 int[] currLineInt = new int[currLine.length];
@@ -164,6 +163,7 @@ public class Task2 {
                            Context context
         ) throws IOException, InterruptedException {
             int numPoints = 0;
+            String points = "";
             int[] sum = {0,0,0};
             for (Text val : values) {
                 String[] stringPoint = val.toString().split(" ");
@@ -174,13 +174,15 @@ public class Task2 {
                 for(int i=0; i<3; i++){
                     sum[i] += point[i];
                 }
+                points += "(" + point[0] + "," + point[1] + "," + point[2] + "), ";
                 numPoints++;
             }
 
             for(int i=0; i<sum.length; i++){
                 sum[i] /= numPoints;
             }
-            context.write(convertPointToText(sum), new Text("1"));
+            //result.set(sum);
+            context.write(convertPointToText(sum), new Text(points));
         }
     }
 
@@ -192,6 +194,7 @@ public class Task2 {
         for(r=0; r<R; r++){
             Job job = Job.getInstance(conf, "Task 2 - Iteration " + r);
             job.setJarByClass(Task2.class);
+            //job.setNumReduceTasks(0);
             job.setReducerClass(KMeansReducer.class);
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(Text.class);

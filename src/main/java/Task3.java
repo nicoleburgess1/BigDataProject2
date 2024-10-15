@@ -160,6 +160,7 @@ public class Task3 {
                            Context context
         ) throws IOException, InterruptedException {
             int numPoints = 0;
+            String points = "";
             int[] sum = {0,0,0};
             for (Text val : values) {
                 String[] stringPoint = val.toString().split(" ");
@@ -170,19 +171,20 @@ public class Task3 {
                 for(int i=0; i<3; i++){
                     sum[i] += point[i];
                 }
+                points += "(" + point[0] + "," + point[1] + "," + point[2] + "), ";
                 numPoints++;
             }
 
             for(int i=0; i<sum.length; i++){
                 sum[i] /= numPoints;
             }
-            context.write(convertPointToText(sum), new Text("1"));
+            context.write(convertPointToText(sum), new Text(points));
         }
     }
 
     public static int r;
     public static void main(String[] args) throws Exception {
-        int R = 20;
+        int R = 10;
         Configuration conf = new Configuration();
         boolean finished = false;
 
