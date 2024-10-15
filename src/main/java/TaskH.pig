@@ -14,16 +14,16 @@ associates = LOAD 'input/Associates.csv'
                 AS (colRel:int, id1:int, id2:int, date:int, description:chararray);
 
 associates = GROUP accessLogs by id1;
-relationship1 = FOREACH associates GENERATE id1 AS associate;
-relationship2 = FOREACH associates GENERATE id2 AS associate;
+relationship1 = FOREACH associates GENERATE id1 AS id, id2 as associate;
+relationship2 = FOREACH associates GENERATE id2 AS id, id1 as associate;
 allAssociates = UNION relationship1,relationship2;
 
-hasAccessedFriends = JOIN allAssociates BY associate LEFT OUTER, accessLogs BY bywho;
+hasAccessedFriends = JOIN allAssociates BY (id, associate) LEFT OUTER, accessLogs BY (bywho,whatpage);
 
-neverAccessedFriends = FILTER Associates by hasAccessedFriends::bywho is NULL;
+neverAccessedFriends = FILTER hasAcceddedFriends by accessLogs::bywho is NULL;
 
-neverAccessedPageInfo = JOIN neverAccessedFriends BY associate LEFT OUTER, LinkBookPages BY id;
+neverAccessedPageInfo = JOIN neverAccessedFriends BY id LEFT OUTER, LinkBookPages BY id;
 
 output = FOREACH neverAccessedPageInfo GENERATE
-            LinkBookPages::id as id, nickname as nickname;
+            LinkBookPages::id as id, name as nickname;
 STORE output INTO 'taskH.csv' USING PigStorage(',');

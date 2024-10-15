@@ -182,6 +182,7 @@ public class Task4 {
         public void reduce(Text key, Iterable<Text> values,
                            Context context
         ) throws IOException, InterruptedException {
+            String listOfPoints = "";
             int numPoints = 0;
             int[] sum = {0,0,0};
             for (Text val : values) {
@@ -193,13 +194,14 @@ public class Task4 {
                 for(int i=0; i<3; i++){
                     sum[i] += point[i];
                 }
+                listOfPoints += convertPointToText(point);
                 numPoints+=Integer.parseInt(stringPoint[3]);;
             }
 
             for(int i=0; i<sum.length; i++){
                 sum[i] /= numPoints;
             }
-            context.write(convertPointToText(sum), new Text("1"));
+            context.write(convertPointToText(sum), new Text(listOfPoints));
         }
     }
 

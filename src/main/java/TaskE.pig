@@ -8,8 +8,8 @@
 accesslogs = LOAD 'input/accessLogs.csv'
                 USING PigStorage(',')
                 AS (id:int, bywho:int, whatpage:int, typeofaccess:chararray, accesstime:int);
-accesses = GROUP accessLogs by whatpage;
-totalCount = FOREACH accesses GENERATE bywho AS ID, count(accessLogs) AS numAccesses;
+accesses = GROUP accessLogs by bywho;
+totalCount = FOREACH accesses GENERATE group AS ID, count(accessLogs) AS numAccesses;
 
 distinctAccesses = DISTINCT(FOREACH accessLogs GENERATE bywho AS ownerID, whatpage);
 groupedByID = GROUP distinctAccessses BY ownerID;
