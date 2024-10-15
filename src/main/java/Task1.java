@@ -95,6 +95,7 @@ public class Task1 {
                            Context context
         ) throws IOException, InterruptedException {
             int numPoints = 0;
+            String points = "";
             int[] sum = {0,0,0};
             for (Text val : values) {
                 String[] stringPoint = val.toString().split(" ");
@@ -105,13 +106,14 @@ public class Task1 {
                 for(int i=0; i<3; i++){
                     sum[i] += point[i];
                 }
+                points += "(" + point[0] + "," + point[1] + "," + point[2] + "), ";
                 numPoints++;
             }
 
             for(int i=0; i<sum.length; i++){
                 sum[i] /= numPoints;
             }
-            context.write(convertPointToText(sum), new Text("1"));
+            context.write(convertPointToText(sum), new Text(points));
         }
     }
 
@@ -125,7 +127,7 @@ public class Task1 {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, new Path("clustering.csv"));
-        FileOutputFormat.setOutputPath(job, new Path("Task1Output"));
+        FileOutputFormat.setOutputPath(job, new Path("Task1"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }
