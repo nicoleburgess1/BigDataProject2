@@ -7,6 +7,9 @@ the last 90 days. Mapped them with a “A” attached to make the joining easier
 that there is a record of all of them. We then join the two mapper tasks in the reducer to  find which pages have and
 have not had activity in the last 90 days, and from there we can output any linked book page that doesn’t have a join
 in the activity
+
+pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskG.pig
+Works!
 */
 
 

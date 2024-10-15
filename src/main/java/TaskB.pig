@@ -1,3 +1,7 @@
+/*
+pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskB.pig
+*/
+
 accessLogs = LOAD 'shared_folder/BigDataProject2/input/accessLogs.csv'
                 USING PigStorage(',')
                 AS (id:int, bywho:int, whatpage:int, typeofaccess:chararray, accesstime:int);

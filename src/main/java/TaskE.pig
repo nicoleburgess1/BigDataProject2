@@ -3,6 +3,7 @@
   AccessLog) and how many distinct LinkBookPage they have accessed in total. As for the
   identifier of each LinkBookPage owner, you don’t have to report name. IDs are enough
   Output: ID, totalNumAccesses, numDistinct
+  pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskE.pig
   */
 
 accessLogs = LOAD 'shared_folder/BigDataProject2/input/accessLogs.csv'

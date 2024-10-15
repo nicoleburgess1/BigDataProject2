@@ -1,3 +1,8 @@
+/*
+pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskA.pig
+Works!
+*/
+
 LinkBookPages = LOAD 'shared_folder/BigDataProject2/input/LinkBookPage.csv'
                 USING PigStorage(',')
                 AS (id:int, name:chararray, occupation:chararray, ncode:int, highestEdu:chararray);

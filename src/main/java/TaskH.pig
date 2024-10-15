@@ -1,6 +1,9 @@
 /*
 Identify people that have a relationship with someone (Associates); yet never accessed
 their respective friend’s LinkBookPage. Report IDs and nicknames.
+
+
+pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskH.pig
 */
 
 accessLogs = LOAD 'shared_folder/BigDataProject2/input/accessLogs.csv'

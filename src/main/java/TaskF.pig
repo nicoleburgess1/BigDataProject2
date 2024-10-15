@@ -2,6 +2,8 @@
 Report all owners of a LinkBookPage who are more popular than an average user,
 namely, those who have more relationships than the average number of relationships
 across all owners LinkBookPages.
+
+pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskF.pig
 */
 
 associates = LOAD 'input/Associates.csv'

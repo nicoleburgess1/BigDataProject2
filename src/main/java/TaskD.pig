@@ -1,3 +1,7 @@
+/*
+pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskD.pig
+*/
+
 associates = LOAD 'shared_folder/BigDataProject2/input/Associates.csv'
                 USING PigStorage(',')
                 AS (colRel:int, id1:int, id2:int, date:int, description:chararray);
