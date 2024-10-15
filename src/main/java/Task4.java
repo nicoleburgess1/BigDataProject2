@@ -183,7 +183,7 @@ public class Task4 {
     public static class KMeansReducer
             extends Reducer<Text,Text,Text,Text> {
 
-        public static ArrayList<String> newCenters = new ArrayList<>();
+        public static ArrayList<int[]> newCenters = new ArrayList<>();
 
         public void reduce(Text key, Iterable<Text> values,
                            Context context
@@ -210,29 +210,32 @@ public class Task4 {
             for(int i=0; i<sum.length; i++){
                 sum[i] /= numPoints;
             }
-            newCenters.add(sum[0] + " " + sum[1] + " " + sum[2]);
+            newCenters.add(sum);
             if(returnPoints)
                 context.write(convertPointToText(sum), new Text(points));
             else
                 context.write(convertPointToText(sum), new Text(""));
         }
 
-        /*public void cleanup(Context context) throws IOException, InterruptedException {
-            if(isFinished(Task4.r, newCenters))
+        public void cleanup(Context context) throws IOException, InterruptedException {
+            if(isFinished(r, newCenters))
                 context.write(new Text("CONVERGED"), new Text(""));
             else
                 context.write(new Text("NOT CONVERGED"), new Text(""));
-        }*/
+
+            newCenters.clear();
+        }
 
     }
 
     public static int r;
+    public static int threshold = 1;
     public static boolean finished;
     public static boolean returnPoints; //false if only returning centers (Task e.i) true if returning points and centers (Task e.ii)
 
     public static void main(String[] args) throws Exception {
-        int R = 20;
-        returnPoints = false;
+        int R = 10;
+        returnPoints = true;
         Configuration conf = new Configuration();
         finished = false;
         long startTime = System.currentTimeMillis();
@@ -275,16 +278,15 @@ public class Task4 {
             oldCenters=getListOfCenters("Task4/Task4Output" + (r-1) + "/part-r-00000");
         newCenters= getListOfCenters("Task4/Task4Output" + (r) + "/part-r-00000");
         for(int i=0; i<oldCenters.length; i++){
-            if(euclideanDistance.distance(oldCenters[i], newCenters[i]) > 100)
+            if(euclideanDistance.distance(oldCenters[i], newCenters[i]) > threshold)
                 return false;
         }
         return true;
     }
 
-    public static boolean isFinished(int r, ArrayList<String> current) throws IOException {
+    public static boolean isFinished(int r, ArrayList<int[]> current) throws IOException {
         int[][] oldCenters, newCenters;
         newCenters = new int[k][];
-        String[][] newCentersString = new String[current.size()][];
         if(r==0)
             return false;
         if(r==1){
@@ -293,25 +295,13 @@ public class Task4 {
         else
             oldCenters=getListOfCenters("Task4/Task4Output" + (r-1) + "/part-r-00000");
 
-        System.out.println("new Center length: " + current.size());
-        for (String s : current) {
-            System.out.println(s); //outputs 10, the first 5 are the previous ones
-        }
-        for(int i=5; i<current.size(); i++){
-            newCentersString[i] = current.get(i).split(" ");
-        }
-        for (String[] s : newCentersString) {
-            System.out.println(s);
-        }
-        for(int i=0; i<newCentersString.length; i++){
-            for(int j=0; j<newCentersString[i].length; j++){
-                newCenters[i][j] = Integer.parseInt(newCentersString[i][j]);
-            }
-            System.out.println("New Center: " + newCenters[i][0] + " " + newCenters[i][1] + " " + newCenters[i][2]);
 
+        for(int i=0; i<current.size(); i++){
+            newCenters[i]= current.get(i);
+            System.out.println("New Center: " + newCenters[i][0] + " " + newCenters[i][1] + " " + newCenters[i][2]);
         }
         for(int i=0; i<oldCenters.length; i++){
-            if(euclideanDistance.distance(oldCenters[i], newCenters[i]) > 100)
+            if(euclideanDistance.distance(oldCenters[i], newCenters[i]) > threshold) //threshold
                 return false;
         }
         return true;
