@@ -3,20 +3,21 @@
   AccessLog) and how many distinct LinkBookPage they have accessed in total. As for the
   identifier of each LinkBookPage owner, you don’t have to report name. IDs are enough
   Output: ID, totalNumAccesses, numDistinct
+  pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskE.pig
   */
 
-accesslogs = LOAD 'input/accessLogs.csv'
+accessLogs = LOAD 'shared_folder/BigDataProject2/input/accessLogs.csv'
                 USING PigStorage(',')
                 AS (id:int, bywho:int, whatpage:int, typeofaccess:chararray, accesstime:int);
 accesses = GROUP accessLogs by bywho;
 totalCount = FOREACH accesses GENERATE group AS ID, count(accessLogs) AS numAccesses;
 
 distinctAccesses = DISTINCT(FOREACH accessLogs GENERATE bywho AS ownerID, whatpage);
-groupedByID = GROUP distinctAccessses BY ownerID;
-distinctCount = FOREACH distinctAccesses GENERATE bywho AS ID, count(groupedByID) AS numDistinct;
+groupedByID = GROUP distinctAccesses BY ownerID;
+distinctCount = FOREACH groupedByID GENERATE group AS ID, count(distinctAccesses) AS numDistinct;
 
 j = JOIN totalCount BY ID LEFT OUTER, distinctCount BY ID;
-output = FOREACH j GENERATE
-            totalCount::ID as ID, totalCOunt:: numAccesses as numAccesses, distinctCount:: numDistinct as numDistinct;
+accessOutput = FOREACH j GENERATE
+            totalCount::ID as ID, totalCount::numAccesses as numAccesses, distinctCount::numDistinct as numDistinct;
 
-STORE output INTO 'taskE.csv' USING PigStorage(',');
+STORE accessOutput INTO 'shared_folder/BigDataProject2/output/taskE' USING PigStorage(',');

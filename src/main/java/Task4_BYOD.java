@@ -1,6 +1,9 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -8,25 +11,20 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Task3_BYOD {
-    static int k = 2;
+public class Task4_BYOD {
+    static int k = 5;
     public static Text convertPointToText(int[] point){
-        return new Text(point[0]+" "+point[1]+" "+point[2]+ " "+ point[3]);
+        return new Text(point[0]+" "+point[1]+" "+point[2] + " " + point[3]);
     }
+
     public static int[][] firstCenters;
     public static class FirstIterationMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private final static IntWritable one = new IntWritable(1);
         private static int[][] centers = new int[k][];
-
-        //private Text Education = new Text();
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
@@ -38,7 +36,7 @@ public class Task3_BYOD {
                 columns[i] = datapoint[i].split(",");
                 points[i] = new int[columns[i].length];
                 for(int j = 0; j < columns[i].length; j++){
-                    points[i][j] = (int) Double.parseDouble(columns[i][j]);
+                    points[i][j] = (int)Double.parseDouble(columns[i][j]);
                 }
             }
 
@@ -58,7 +56,7 @@ public class Task3_BYOD {
 
         protected void setup(Context context) throws IOException, InterruptedException {
             centers = loadInitialCenters();
-            firstCenters = centers;
+            firstCenters=centers;
         }
 
         public int[][] loadInitialCenters() throws IOException {
@@ -82,7 +80,7 @@ public class Task3_BYOD {
                     currLineInt[j] = (int) Double.parseDouble(currLine[j]);
                 }
                 center[i] = currLineInt;
-                System.out.println(center[i][0] + " " + center[i][1] + " " + center[i][2]+ " " + center[i][3]);
+                System.out.println(center[i][0] + " " + center[i][1] + " " + center[i][2] + center[i][3]);
             }
             return center;
         }
@@ -92,10 +90,7 @@ public class Task3_BYOD {
     public static class SubsequentIterationMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private final static IntWritable one = new IntWritable(1);
         private static int[][] centers = new int[k][];
-
-        //private Text Education = new Text();
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
@@ -107,7 +102,7 @@ public class Task3_BYOD {
                 columns[i] = datapoint[i].split(",");
                 points[i] = new int[columns[i].length];
                 for(int j = 0; j < columns[i].length; j++){
-                    points[i][j] = (int) Double.parseDouble(columns[i][j]);
+                    points[i][j] = (int)Double.parseDouble(columns[i][j]);
                 }
             }
 
@@ -134,7 +129,7 @@ public class Task3_BYOD {
             int[][] center = new int[k][];
 
             // Reading the file
-            try (BufferedReader br = new BufferedReader(new FileReader("Task3_BYOD/Task3_BYOD_Output" + (r-1) + "/part-r-00000"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("Task4_BYOD/Task4_BYOD_Output" + (r-1) + "/part-r-00000"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     lines.add(line);
@@ -149,19 +144,20 @@ public class Task3_BYOD {
                     currLineInt[j] = (int) Double.parseDouble(currLine[j]);
                 }
                 center[i] = currLineInt;
-                System.out.println(center[i][0] + " " + center[i][1] + " " + center[i][2] + " " + center[i][3]);
+                System.out.println(center[i][0] + " " + center[i][1] + " " + center[i][2] + " " +center[i][3]);
             }
             return center;
         }
 
     }
 
-    public static class KMeansReducer
+    public static class KMeansCombiner
             extends Reducer<Text,Text,Text,Text> {
         public void reduce(Text key, Iterable<Text> values,
                            Context context
         ) throws IOException, InterruptedException {
             int numPoints = 0;
+            String points = "";
             int[] sum = {0,0,0,0};
             for (Text val : values) {
                 String[] stringPoint = val.toString().split(" ");
@@ -172,25 +168,80 @@ public class Task3_BYOD {
                 for(int i=0; i<4; i++){
                     sum[i] += point[i];
                 }
+                points += "(" + point[0] + "," + point[1] + "," + point[2] + "," + point[3] + ")";
                 numPoints++;
+            }
+
+            if(returnPoints)
+                context.write(key, new Text(convertPointToText(sum)+ "\t" + numPoints + "\t" + points));
+            else
+                context.write(key, new Text(convertPointToText(sum)+ "\t" + numPoints));
+        }
+    }
+
+    public static class KMeansReducer
+            extends Reducer<Text,Text,Text,Text> {
+
+        public static ArrayList<int[]> newCenters = new ArrayList<>();
+
+        public void reduce(Text key, Iterable<Text> values,
+                           Context context
+        ) throws IOException, InterruptedException {
+            String points = "";
+            int numPoints = 0;
+            int[] sums = new int[4];
+            int[] sum = {0,0,0,0};
+            for (Text val : values) {
+                String[] parts = val.toString().split("\t");
+
+                String[] stringSums = parts[0].split(" ");
+                for(int i = 0; i < stringSums.length; i++){
+                    sums[i] = (int) Double.parseDouble(stringSums[i]);
+                }
+                for(int i=0; i<4; i++){
+                    sum[i] += sums[i];
+                }
+                if(parts.length>2)
+                    points += parts[2];
+                numPoints+=(int) Double.parseDouble(parts[1]);;
             }
 
             for(int i=0; i<sum.length; i++){
                 sum[i] /= numPoints;
             }
-            context.write(convertPointToText(sum), new Text("1"));
+            newCenters.add(sum);
+            if(returnPoints)
+                context.write(convertPointToText(sum), new Text(points));
+            else
+                context.write(convertPointToText(sum), new Text(""));
         }
+
+        public void cleanup(Context context) throws IOException, InterruptedException {
+            if(isFinished(r, newCenters))
+                context.write(new Text("CONVERGED"), new Text(""));
+            else
+                context.write(new Text("NOT CONVERGED"), new Text(""));
+
+            newCenters.clear();
+        }
+
     }
 
     public static int r;
-    public static void main(String[] args) throws Exception {
-        int R = 20;
-        Configuration conf = new Configuration();
-        boolean finished = false;
+    public static int threshold = 1;
+    public static boolean finished;
+    public static boolean returnPoints; //false if only returning centers (Task e.i) true if returning points and centers (Task e.ii)
 
+    public static void main(String[] args) throws Exception {
+        int R = 10;
+        returnPoints = true;
+        Configuration conf = new Configuration();
+        finished = false;
+        long startTime = System.currentTimeMillis();
         for(r=0; r<R && !finished; r++){
-            Job job = Job.getInstance(conf, "Task 2 - Iteration " + r);
-            job.setJarByClass(Task3_BYOD.class);
+            Job job = Job.getInstance(conf, "Task 4_BYOD - Iteration " + r);
+            job.setJarByClass(Task4.class);
+            job.setCombinerClass(KMeansCombiner.class);
             job.setReducerClass(KMeansReducer.class);
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(Text.class);
@@ -201,16 +252,20 @@ public class Task3_BYOD {
                 job.setMapperClass(SubsequentIterationMapper.class);
             }
             FileInputFormat.addInputPath(job, new Path("penguins.csv"));
-            FileOutputFormat.setOutputPath(job, new Path("Task3_BYOD/Task3_BYOD_Output" + r));
+            FileOutputFormat.setOutputPath(job, new Path("Task4_BYOD/Task4_BYOD_Output" + r));
             if (!job.waitForCompletion(true)) {
                 System.exit(1);
             }
+
             finished = isFinished(r);
         }
+        long endTime = System.currentTimeMillis();
+        System.out.println("Time taken: " + (endTime - startTime) + "ms");
 
         System.exit(0);
 
     }
+
     public static boolean isFinished(int r) throws IOException {
         int[][] oldCenters, newCenters;
         if(r==0)
@@ -219,14 +274,38 @@ public class Task3_BYOD {
             oldCenters=firstCenters;
         }
         else
-            oldCenters=getListOfCenters("Task3_BYOD/Task3_BYOD_Output" + (r-1) + "/part-r-00000");
-        newCenters= getListOfCenters("Task3_BYOD/Task3_BYOD_Output" + (r) + "/part-r-00000");
+            oldCenters=getListOfCenters("Task4_BYOD/Task4_BYOD_Output" + (r-1) + "/part-r-00000");
+        newCenters= getListOfCenters("Task4_BYOD/Task4_BYOD_Output" + (r) + "/part-r-00000");
         for(int i=0; i<oldCenters.length; i++){
-            if(euclideanDistance.distance4(oldCenters[i], newCenters[i]) > 1)
+            if(euclideanDistance.distance4(oldCenters[i], newCenters[i]) > threshold)
                 return false;
         }
         return true;
     }
+
+    public static boolean isFinished(int r, ArrayList<int[]> current) throws IOException {
+        int[][] oldCenters, newCenters;
+        newCenters = new int[k][];
+        if(r==0)
+            return false;
+        if(r==1){
+            oldCenters=firstCenters;
+        }
+        else
+            oldCenters=getListOfCenters("Task4_BYOD/Task4_BYOD_Output" + (r-1) + "/part-r-00000");
+
+
+        for(int i=0; i<current.size(); i++){
+            newCenters[i]= current.get(i);
+            System.out.println("New Center: " + newCenters[i][0] + " " + newCenters[i][1] + " " + newCenters[i][2] + " " + newCenters[i][3]);
+        }
+        for(int i=0; i<oldCenters.length; i++){
+            if(euclideanDistance.distance4(oldCenters[i], newCenters[i]) > threshold) //threshold
+                return false;
+        }
+        return true;
+    }
+
     public static int[][] getListOfCenters(String path) throws IOException {
         ArrayList<String> lines = new ArrayList<>();
         int[][] center = new int[k][];
@@ -244,7 +323,7 @@ public class Task3_BYOD {
             String[] currLine = currCenter.split(" ");
             int[] currLineInt = new int[currLine.length];
             for(int j=0; j<currLine.length; j++){
-                currLineInt[j] = (int) Double.parseDouble(currLine[j]);
+                currLineInt[j] = Integer.parseInt(currLine[j]);
             }
             center[i] = currLineInt;
         }
