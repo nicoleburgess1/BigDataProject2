@@ -6,6 +6,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.jute.compiler.JDouble;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -303,6 +304,24 @@ public class silhouette {
                 }
             }
         }
+
+    public static class SillhouetteReducer
+            extends Reducer<Text,Text,Text,Text> {
+        public void reduce(Text key, Iterable<Text> values,
+                           Context context
+        ) throws IOException, InterruptedException {
+            double sum = 0;
+            double i = 0;
+            for (Text val : values) {
+                double value = new Double(val.toString());
+                sum += value;
+                i += 1;
+            }
+            double average = sum/i;
+            context.write(new Text("Sillhouette average"), new Text(String.valueOf(average)));
+        }
+    }
+
         public static int r;
         public static int threshold = 1;
         public static boolean finished;
