@@ -18,8 +18,12 @@ count = GROUP allAssociates by associate;
 happiness = FOREACH count
             GENERATE group AS id, COUNT(allAssociates) AS numAssociations;
 
+
 j = JOIN LinkBookPages BY id LEFT OUTER, happiness BY id;
-happinessCount = FOREACH j GENERATE
-            LinkBookPages::name as name, (IsNull(happiness::numAssociations) ? 0 : happiness::numAssociations) AS happiness;
+
+page = FILTER j by happiness::numAssociations is NULL;
+
+happinessCount = FOREACH page GENERATE
+            LinkBookPages::name as name, happiness::numAssociations AS happiness;
 
 STORE happinessCount INTO 'shared_folder/BigDataProject2/output/taskD' USING PigStorage(',');

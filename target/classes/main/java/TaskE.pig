@@ -9,8 +9,10 @@
 accessLogs = LOAD 'shared_folder/BigDataProject2/input/accessLogs.csv'
                 USING PigStorage(',')
                 AS (id:int, bywho:int, whatpage:int, typeofaccess:chararray, accesstime:int);
-accesses = GROUP accessLogs by bywho;
-totalCount = FOREACH accesses GENERATE group AS ID, count(accessLogs) AS numAccesses;
+accesses = GROUP accessLogs by whatpage;
+totalCount = FOREACH accesses
+    GENERATE group AS ID, COUNT(accessLogs) AS numAccesses;
+
 
 distinctAccesses = DISTINCT(FOREACH accessLogs GENERATE bywho AS ownerID, whatpage);
 groupedByID = GROUP distinctAccesses BY ownerID;
