@@ -6,7 +6,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.jute.compiler.JDouble;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -130,7 +129,7 @@ public class silhouette {
                 int[][] center = new int[k][];
 
                 // Reading the file
-                try (BufferedReader br = new BufferedReader(new FileReader("Task4/Task4Output" + (r-1) + "/part-r-00000"))) {
+                try (BufferedReader br = new BufferedReader(new FileReader("Task4Silhouette/output" + (r-1) + "/part-r-00000"))) {
                     String line;
                     while ((line = br.readLine()) != null) {
                         lines.add(line);
@@ -234,59 +233,63 @@ public class silhouette {
             public void map(Text key, Text value, Context context
             ) throws IOException, InterruptedException {
                 ArrayList<String> lines = new ArrayList<>();
-                try (BufferedReader br = new BufferedReader(new FileReader("Task4/Task4Output" + (r-1) + "/part-r-00000"))) {
+                /*try (BufferedReader br = new BufferedReader(new FileReader("Task4Silhouette/output" + (r-1) + "/part-r-00000"))) {
                     String line;
                     while ((line = br.readLine()) != null) {
                         lines.add(line);
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
+                } */
+                String[] dataset = value.toString().split("\n");
+                ArrayList<String[]> points = new ArrayList<>();
+                for(int i=0; i<dataset.length; i++){
+                    points.add(dataset[i].split(" "));
                 }
-                double total = 0;
-                for (int i = 0; i < lines.size() - 1; i++) {
-                    String[] points = lines.get(i).split("\t")[1].split("\\),");
-                    for (int j = 0; j < points.length - 1; j++) {
+                for(int i=0; i<points.size(); i++){
+                    for(int j=0; j<points.get(i).length; j++){
+                        points.get(i)[j] = points.get(i)[j].substring(points.get(i)[j].indexOf("(")+1,points.get(i)[j].indexOf(")"));
+                    }
+                }
+
+                ArrayList<String[][]> xyzstring = new ArrayList<>();
+                for(int i=0; i<points.size(); i++){
+                    for(int j=0; j<points.get(i).length; j++){
+                        String[] temp = points.get(i)[j].split(",");
+                        xyzstring.get(i).add(temp);
+                    }
+                }
+                ArrayList<int[][]> xyzPoints = new ArrayList<>();
+                for(int i=0; i<xyzstring.size(); i++){
+                    for(int j=0; j<xyzstring.get(i).length; j++){
+                        for(int k=0; k<xyzstring.get(i)[j].length; k++){
+                            xyzPoints.get(i)[j][k]= Integer.parseInt(xyzstring.get(i)[j][k]);
+                        }
+                    }
+                }
+                for (int i = 0; i < xyzPoints.size() - 1; i++) {
+                    int[][] points_1 = xyzPoints.get(i);
+                    for (int j = 0; j < points_1.length - 1; j++) {
                         double sum = 0;
                         double a = 0;
-                        String[] point = points[j].split(",");
-                        int[] int_point = new int[point.length];
-                        String string_point = point[0].replace("(", "");
-                        string_point = string_point.replace(" ", "");
-                        System.out.println(string_point);
-                        int_point[0] = Integer.parseInt(string_point);
-                        int_point[1] = Integer.parseInt(point[1]);
-                        int_point[2] = Integer.parseInt(point[2]);
-                        for (int k = 0; k<points.length - 1; k++){
-                            String[] point_1 = points[k].split(",");
-                            int[] int_point_1 = new int[point_1.length];
-                            String string_point_1 = point_1[0].replace("(", "");
-                            string_point_1 = string_point_1.replace(" ", "");
-                            System.out.println(string_point);
-                            int_point_1[0] = Integer.parseInt(string_point_1);
-                            int_point_1[1] = Integer.parseInt(point_1[1]);
-                            int_point_1[2] = Integer.parseInt(point_1[2]);
-                            double distance = euclideanDistance.distance(int_point, int_point_1);
+                        int[] point = points_1[j];
+                        for (int k = 0; k<points_1.length - 1; k++){
+                            int[] point_1 = points_1[k];
+                            double distance = euclideanDistance.distance(point, point_1);
                             sum += (double) distance;
                         }
-                        a = sum/points.length;
+                        a = sum/points_1.length;
 
-                        for (int l = 0; l < lines.size() - 1; l++) {
+                        for (int l = 0; l < xyzPoints.size() - 1; l++) {
                             double min = 10000;
                             double b = 0;
                             double sillhouette = 0;
                             double sum_1 = 0;
                             if (l!=i){
-                                String[] points_diff_cluster = lines.get(l).split("\t")[1].split("\\),");
+                                int[][] points_diff_cluster = xyzPoints.get(l);
                                 for (int k = 0; k<points_diff_cluster.length - 1; k++){
-                                    String[] point_1 = points_diff_cluster[k].split(",");
-                                    int[] int_point_1 = new int[point_1.length];
-                                    String string_point_1 = point_1[0].replace("(", "");
-                                    string_point_1 = string_point_1.replace(" ", "");
-                                    System.out.println(string_point);
-                                    int_point_1[0] = Integer.parseInt(string_point_1);
-                                    int_point_1[1] = Integer.parseInt(point_1[1]);
-                                    int_point_1[2] = Integer.parseInt(point_1[2]);
-                                    double distance = euclideanDistance.distance(int_point, int_point_1);
+                                    int[] point_1 = points_diff_cluster[k];
+                                    double distance = euclideanDistance.distance(point, point_1);
                                     sum_1 += (double) distance;
                                 }
                                 double temp = sum_1/points_diff_cluster.length;
@@ -297,7 +300,7 @@ public class silhouette {
                             b = min;
                             sillhouette = (b - a) / Math.max(a, b);
                             System.out.println(sillhouette);
-                            context.write(convertPointToText(int_point), new Text(String.valueOf(sillhouette)));
+                            context.write(convertPointToText(point), new Text(String.valueOf(sillhouette)));
                         }
                     }
 
@@ -333,21 +336,32 @@ public class silhouette {
             Configuration conf = new Configuration();
             finished = false;
             long startTime = System.currentTimeMillis();
-            for(r=0; r<R && !finished; r++){
+            for(r=0; r<=R; r++) {
                 Job job = Job.getInstance(conf, "Task 4 - Iteration " + r);
                 job.setJarByClass(Task4.class);
                 job.setCombinerClass(KMeansCombiner.class);
                 job.setReducerClass(KMeansReducer.class);
                 job.setOutputKeyClass(Text.class);
                 job.setOutputValueClass(Text.class);
-                if(r==0){
+                if (r == 0) {
                     job.setMapperClass(FirstIterationMapper.class);
                 }
-                else{
+                else if(finished || r>=R){
+                    Job silhouette = Job.getInstance(conf, "Task 4 - Iteration " + r);
+                    FileInputFormat.addInputPath(silhouette, new Path("Task4Silhouette/output" + (r-1) + "/part-r-00000"));
+                    FileOutputFormat.setOutputPath(silhouette, new Path("Task4Silhouette/output"));
+                    //silhouette.setReducerClass(SillhouetteReducer.class);
+                    silhouette.setNumReduceTasks(0);
+                    silhouette.setMapperClass(SilhouetteMapper.class);
+                    if (!silhouette.waitForCompletion(true)) {
+                        System.exit(1);
+                    }
+                }
+                else {
                     job.setMapperClass(SubsequentIterationMapper.class);
                 }
                 FileInputFormat.addInputPath(job, new Path("clustering.csv"));
-                FileOutputFormat.setOutputPath(job, new Path("Task4/Task4Output" + r));
+                FileOutputFormat.setOutputPath(job, new Path("Task4Silhouette/output" + r));
                 if (!job.waitForCompletion(true)) {
                     System.exit(1);
                 }
@@ -369,8 +383,8 @@ public class silhouette {
                 oldCenters=firstCenters;
             }
             else
-                oldCenters=getListOfCenters("Task4/Task4Output" + (r-1) + "/part-r-00000");
-            newCenters= getListOfCenters("Task4/Task4Output" + (r) + "/part-r-00000");
+                oldCenters=getListOfCenters("Task4Silhouette/output" + (r-1) + "/part-r-00000");
+            newCenters= getListOfCenters("Task4Silhouette/output" + (r) + "/part-r-00000");
             for(int i=0; i<oldCenters.length; i++){
                 if(euclideanDistance.distance(oldCenters[i], newCenters[i]) > threshold)
                     return false;
@@ -387,7 +401,7 @@ public class silhouette {
                 oldCenters=firstCenters;
             }
             else
-                oldCenters=getListOfCenters("Task4/Task4Output" + (r-1) + "/part-r-00000");
+                oldCenters=getListOfCenters("Task4Silhouette/output" + (r-1) + "/part-r-00000");
 
 
             for(int i=0; i<current.size(); i++){
