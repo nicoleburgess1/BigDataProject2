@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Task1 {
-    static int k = 5;
     public static Text convertPointToText(int[] point){
         return new Text(point[0]+" "+point[1]+" "+point[2]);
     }
@@ -117,7 +116,7 @@ public class Task1 {
         }
     }
 
-
+    static int k = 5;
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Task 1");

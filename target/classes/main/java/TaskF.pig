@@ -8,22 +8,34 @@ pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskF.pig
 idk how to do the average
 */
 
-associates = LOAD 'input/Associates.csv'
+associates = LOAD 'shared_folder/BigDataProject2/input/Associates.csv'
                 USING PigStorage(',')
                 AS (colRel:int, id1:int, id2:int, date:int, description:chararray);
-popularity = FOREACH associates
-            GENERATE group AS id1, COUNT(id2) AS numAssociations;
-average = average(numAssociations);
 
-aboveAverage = FILTER popularity BY numAssociations > average;
+relationship1 = FOREACH associates GENERATE id1 AS id, id2 as associate;
+relationship2 = FOREACH associates GENERATE id2 AS id, id1 as associate;
+allAssociates = UNION relationship1,relationship2;
 
-LinkBookPages = LOAD 'input/LinkBookPage.csv'
+groupedAssociates = GROUP allAssociates BY id;
+popularity = FOREACH groupedAssociates
+            GENERATE group AS id, COUNT(allAssociates) AS numAssociations;
+
+allAssociations = FOREACH (GROUP popularity BY 'dummy') GENERATE
+            SUM(popularity.numAssociations) AS associations;
+
+allUsers = FOREACH (GROUP popularity BY 'dummy') GENERATE
+            COUNT(popularity) AS totalUsers;
+
+associationsAndUsers = CROSS allAssociations, allUsers;
+avg = FOREACH associationsAndUsers
+            GENERATE (double)associations / totalUsers AS average;
+
+aboveAverage = FILTER popularity BY numAssociations > avg.average;
+
+LinkBookPages = LOAD 'shared_folder/BigDataProject2/input/LinkBookPage.csv'
                 USING PigStorage(',')
                 AS (id:int, name:chararray, occupation:chararray, ncode:int, highestEdu:chararray);
 
-j = JOIN LinkBookPages BY id LEFT OUTER, aboveAverage BY id;
-
-output = FOREACH j GENERATE
-            LinkBookPages::id as id,  LinkBookPages::name as name, numAssociations as associations;
-
-STORE output INTO 'taskF.csv' USING PigStorage(',');
+j = JOIN LinkBookPages BY id, aboveAverage BY id;
+out = FOREACH j GENERATE LinkBookPages::id AS id, LinkBookPages::name AS name, aboveAverage::numAssociations AS associations;
+STORE out INTO 'shared_folder/BigDataProject2/output/TaskF' USING PigStorage(',');

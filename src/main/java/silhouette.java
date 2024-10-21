@@ -79,7 +79,7 @@ public class silhouette {
                         currLineInt[j] = Integer.parseInt(currLine[j]);
                     }
                     center[i] = currLineInt;
-                    System.out.println(center[i][0] + " " + center[i][1] + " " + center[i][2]);
+                    //System.out.println(center[i][0] + " " + center[i][1] + " " + center[i][2]);
                 }
                 return center;
             }
@@ -144,7 +144,7 @@ public class silhouette {
                         currLineInt[j] = Integer.parseInt(currLine[j]);
                     }
                     center[i] = currLineInt;
-                    System.out.println(center[i][0] + " " + center[i][1] + " " + center[i][2]);
+                    //System.out.println(center[i][0] + " " + center[i][1] + " " + center[i][2]);
                 }
                 return center;
             }
@@ -232,18 +232,17 @@ public class silhouette {
             extends Mapper<Text, Text, Text, Text>{
             public void map(Text key, Text value, Context context
             ) throws IOException, InterruptedException {
-                ArrayList<String> lines = new ArrayList<>();
-                /*try (BufferedReader br = new BufferedReader(new FileReader("Task4Silhouette/output" + (r-1) + "/part-r-00000"))) {
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        lines.add(line);
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } */
+                System.out.println("--------------------------------Reach-------------------------------");
                 String[] dataset = value.toString().split("\n");
+
+                if (dataset.length == 0) {
+                    System.err.println("Empty dataset.");
+                    return;
+                }
+
+
                 ArrayList<String[]> points = new ArrayList<>();
-                for(int i=0; i<dataset.length; i++){
+                for(int i=0; i<dataset.length-1; i++){ //the last line is CONVERGED or NOT CONVERGED
                     points.add(dataset[i].split(" "));
                 }
                 for(int i=0; i<points.size(); i++){
@@ -251,22 +250,36 @@ public class silhouette {
                         points.get(i)[j] = points.get(i)[j].substring(points.get(i)[j].indexOf("(")+1,points.get(i)[j].indexOf(")"));
                     }
                 }
-
-                ArrayList<String[][]> xyzstring = new ArrayList<>();
+                System.out.println("--------------------------------Reach1-------------------------------");
+                ArrayList<String[][]> xyzString = new ArrayList<>(); //array of points which each have an array of values xyz
                 for(int i=0; i<points.size(); i++){
+                    String[][] temp = new String[points.get(i).length][];
                     for(int j=0; j<points.get(i).length; j++){
-                        String[] temp = points.get(i)[j].split(",");
-                        xyzstring.get(i).add(temp);
-                    }
-                }
-                ArrayList<int[][]> xyzPoints = new ArrayList<>();
-                for(int i=0; i<xyzstring.size(); i++){
-                    for(int j=0; j<xyzstring.get(i).length; j++){
-                        for(int k=0; k<xyzstring.get(i)[j].length; k++){
-                            xyzPoints.get(i)[j][k]= Integer.parseInt(xyzstring.get(i)[j][k]);
+                        temp[j] = points.get(i)[j].split(",");
+                        for(int k=0; k<temp[j].length; k++){
+                            System.out.print(temp[j][k] + " ");
                         }
                     }
+                    System.out.println("\nCenter " + i + " Points");
+                    xyzString.add(temp);
                 }
+                System.out.println("--------------------------------Reach2-------------------------------");
+
+
+                ArrayList<int[][]> xyzPoints = new ArrayList<>();
+                for (String[][] cluster : xyzString) {
+                    int[][] clusterPoints = new int[cluster.length][cluster[0].length];
+                    for (int i = 0; i < cluster.length; i++) {
+                        for (int j = 0; j < cluster[i].length; j++) {
+                            clusterPoints[i][j] = Integer.parseInt(cluster[i][j]);
+                        }
+                    }
+                    xyzPoints.add(clusterPoints);
+                }
+
+
+                System.out.println("--------------------------------Reach3-------------------------------");
+
                 for (int i = 0; i < xyzPoints.size() - 1; i++) {
                     int[][] points_1 = xyzPoints.get(i);
                     for (int j = 0; j < points_1.length - 1; j++) {
@@ -305,6 +318,8 @@ public class silhouette {
                     }
 
                 }
+                System.out.println("--------------------------------Reach4-------------------------------");
+
             }
         }
 
@@ -338,18 +353,20 @@ public class silhouette {
             long startTime = System.currentTimeMillis();
             for(r=0; r<=R; r++) {
                 Job job = Job.getInstance(conf, "Task 4 - Iteration " + r);
-                job.setJarByClass(Task4.class);
+                job.setJarByClass(silhouette.class);
                 job.setCombinerClass(KMeansCombiner.class);
                 job.setReducerClass(KMeansReducer.class);
                 job.setOutputKeyClass(Text.class);
                 job.setOutputValueClass(Text.class);
+                FileInputFormat.addInputPath(job, new Path("clustering.csv"));
+                FileOutputFormat.setOutputPath(job, new Path("Task4Silhouette/output" + r));
                 if (r == 0) {
                     job.setMapperClass(FirstIterationMapper.class);
                 }
                 else if(finished || r>=R){
                     Job silhouette = Job.getInstance(conf, "Task 4 - Iteration " + r);
                     FileInputFormat.addInputPath(silhouette, new Path("Task4Silhouette/output" + (r-1) + "/part-r-00000"));
-                    FileOutputFormat.setOutputPath(silhouette, new Path("Task4Silhouette/output"));
+                    FileOutputFormat.setOutputPath(silhouette, new Path("Task4Silhouette/silhouette"));
                     //silhouette.setReducerClass(SillhouetteReducer.class);
                     silhouette.setNumReduceTasks(0);
                     silhouette.setMapperClass(SilhouetteMapper.class);
@@ -360,8 +377,6 @@ public class silhouette {
                 else {
                     job.setMapperClass(SubsequentIterationMapper.class);
                 }
-                FileInputFormat.addInputPath(job, new Path("clustering.csv"));
-                FileOutputFormat.setOutputPath(job, new Path("Task4Silhouette/output" + r));
                 if (!job.waitForCompletion(true)) {
                     System.exit(1);
                 }
@@ -406,7 +421,7 @@ public class silhouette {
 
             for(int i=0; i<current.size(); i++){
                 newCenters[i]= current.get(i);
-                System.out.println("New Center: " + newCenters[i][0] + " " + newCenters[i][1] + " " + newCenters[i][2]);
+                //System.out.println("New Center: " + newCenters[i][0] + " " + newCenters[i][1] + " " + newCenters[i][2]);
             }
             for(int i=0; i<oldCenters.length; i++){
                 if(euclideanDistance.distance(oldCenters[i], newCenters[i]) > threshold) //threshold
