@@ -4,6 +4,8 @@ namely, those who have more relationships than the average number of relationshi
 across all owners LinkBookPages.
 
 pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskF.pig
+
+idk how to do the average
 */
 
 associates = LOAD 'input/Associates.csv'

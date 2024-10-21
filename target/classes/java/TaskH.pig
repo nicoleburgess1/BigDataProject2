@@ -2,8 +2,9 @@
 Identify people that have a relationship with someone (Associates); yet never accessed
 their respective friend’s LinkBookPage. Report IDs and nicknames.
 
-
 pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskH.pig
+
+I think this one may just be wrong
 */
 
 accessLogs = LOAD 'shared_folder/BigDataProject2/input/accessLogs.csv'
@@ -24,7 +25,9 @@ hasAccessedFriends = JOIN allAssociates BY (id, associate) LEFT OUTER, accessLog
 
 neverAccessedFriends = FILTER hasAccessedFriends by accessLogs::bywho is NULL;
 
-neverAccessedPageInfo = JOIN neverAccessedFriends BY accessLogs::id LEFT OUTER, LinkBookPages BY id;
+distinctNeverAccessed = DISTINCT neverAccessedFriends;
+
+neverAccessedPageInfo = JOIN distinctNeverAccessed BY associate, LinkBookPages BY id;
 
 neverAccessedOutput = FOREACH neverAccessedPageInfo GENERATE
             LinkBookPages::id as id, LinkBookPages::name as nickname;

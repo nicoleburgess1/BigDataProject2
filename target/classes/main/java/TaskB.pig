@@ -1,5 +1,6 @@
 /*
 pig -x local /home/ds503/shared_folder/BigDataProject2/src/main/java/TaskB.pig
+Works!
 */
 
 accessLogs = LOAD 'shared_folder/BigDataProject2/input/accessLogs.csv'
@@ -18,6 +19,9 @@ count = FOREACH accesses
 pageInfo = FOREACH LinkBookPages GENERATE id as whatpage, name, occupation;
 C = JOIN count by whatpage, pageInfo by whatpage;
 
+ordered = ORDER C by numAccesses DESC;
+
+top10 = LIMIT ordered 10;
 
 
-STORE C INTO 'shared_folder/BigDataProject2/output/taskB' USING PigStorage(',');
+STORE top10 INTO 'shared_folder/BigDataProject2/output/taskB' USING PigStorage(',');
