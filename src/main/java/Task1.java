@@ -23,10 +23,7 @@ public class Task1 {
     public static class TokenizerMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private final static IntWritable one = new IntWritable(1);
         private static int[][] centers = new int[k][];
-
-        //private Text Education = new Text();
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
@@ -118,6 +115,7 @@ public class Task1 {
 
     static int k = 5;
     public static void main(String[] args) throws Exception {
+        long startTime = System.currentTimeMillis();
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Task 1");
         job.setJarByClass(Task1.class);
@@ -127,6 +125,11 @@ public class Task1 {
         job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, new Path("clustering.csv"));
         FileOutputFormat.setOutputPath(job, new Path("Task1"));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        if (!job.waitForCompletion(true)) {
+            System.exit(1);
+        }
+        long endTime = System.currentTimeMillis();
+        System.out.println("Time taken: " + (endTime - startTime));
+        System.exit(0);
     }
 }

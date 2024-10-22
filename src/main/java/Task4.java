@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Task4 {
-    static int k = 5;
     public static Text convertPointToText(int[] point){
         return new Text(point[0]+" "+point[1]+" "+point[2]);
     }
@@ -228,13 +227,14 @@ public class Task4 {
 
     }
 
+    public static int k = 5;
     public static int r;
     public static int threshold = 1;
     public static boolean finished;
     public static boolean returnPoints; //false if only returning centers (Task e.i) true if returning points and centers (Task e.ii)
-
+    public static int R;
     public static void main(String[] args) throws Exception {
-        int R = 10;
+        R = 25;
         returnPoints = true;
         Configuration conf = new Configuration();
         finished = false;

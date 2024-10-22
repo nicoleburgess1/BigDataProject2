@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Task3 {
-    static int k = 5;
     public static Text convertPointToText(int[] point){
         return new Text(point[0]+" "+point[1]+" "+point[2]);
     }
@@ -183,8 +182,11 @@ public class Task3 {
     }
 
     public static int r;
+    public static int k = 5;
+    public static int R;
     public static void main(String[] args) throws Exception {
-        int R = 10;
+        R = 10;
+        long startTime = System.currentTimeMillis();
         Configuration conf = new Configuration();
         boolean finished = false;
 
@@ -209,6 +211,8 @@ public class Task3 {
             finished = isFinished(r);
         }
 
+        long endTime = System.currentTimeMillis();
+        System.out.println("Time taken: " + (endTime - startTime));
         System.exit(0);
 
     }

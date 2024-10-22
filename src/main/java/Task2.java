@@ -24,7 +24,7 @@ public class Task2 {
     public static class FirstIterationMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private static int[][] centers = new int[5][];
+        private static int[][] centers = new int[k][];
 
 
         public void map(Object key, Text value, Context context
@@ -63,7 +63,7 @@ public class Task2 {
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
             Random rand = new Random();
-            int[][] center = new int[5][];
+            int[][] center = new int[k][];
 
             // Reading the file
             try (BufferedReader br = new BufferedReader(new FileReader("clustering.csv"))) {
@@ -73,7 +73,7 @@ public class Task2 {
                 }
             }
 
-            for(int i=0; i<5; i++){
+            for(int i=0; i<k; i++){
                 int lineNum = rand.nextInt(lines.size());
                 String[] currLine = lines.get(lineNum).split(",");
                 int[] currLineInt = new int[currLine.length];
@@ -91,10 +91,7 @@ public class Task2 {
     public static class SubsequentIterationMapper
             extends Mapper<Object, Text, Text, Text>{
 
-        private final static IntWritable one = new IntWritable(1);
-        private static int[][] centers = new int[5][];
-
-        //private Text Education = new Text();
+        private static int[][] centers = new int[k][];
 
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
@@ -132,7 +129,7 @@ public class Task2 {
         public int[][] loadInitialCenters() throws IOException {
             ArrayList<String> lines = new ArrayList<>();
             Random rand = new Random();
-            int[][] center = new int[5][];
+            int[][] center = new int[k][];
 
             // Reading the file
             try (BufferedReader br = new BufferedReader(new FileReader("Task2/Task2Output" + (r-1) + "/part-r-00000"))) {
@@ -142,7 +139,7 @@ public class Task2 {
                 }
             }
 
-            for(int i=0; i<5; i++){
+            for(int i=0; i<k; i++){
                 String currCenter = lines.get(i).split("\t")[0];
                 String[] currLine = currCenter.split(" ");
                 int[] currLineInt = new int[currLine.length];
@@ -185,12 +182,13 @@ public class Task2 {
             context.write(convertPointToText(sum), new Text(points));
         }
     }
-
+    public static int k = 5;
     public static int r;
+    public static int R;
     public static void main(String[] args) throws Exception {
-        int R = 10;
+        R = 10;
         Configuration conf = new Configuration();
-
+        long startTime = System.currentTimeMillis();
         for(r=0; r<R; r++){
             Job job = Job.getInstance(conf, "Task 2 - Iteration " + r);
             job.setJarByClass(Task2.class);
@@ -210,7 +208,8 @@ public class Task2 {
                 System.exit(1);
             }
         }
-
+        long endTime = System.currentTimeMillis();
+        System.out.println("Time taken: " + (endTime - startTime));
         System.exit(0);
 
     }
