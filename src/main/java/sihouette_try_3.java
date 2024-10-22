@@ -25,7 +25,7 @@ public class sihouette_try_3 {
         public void map(Object key, Text value, Context context
         ) throws IOException, InterruptedException {
             ArrayList<String> lines = new ArrayList<>();
-            try (BufferedReader br = new BufferedReader(new FileReader("Task4/Task4Output9/part-r-00000"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader("Task4/Task4Output24/part-r-00000"))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     lines.add(line);
@@ -103,17 +103,23 @@ public class sihouette_try_3 {
 
     public static class SillhouetteReducer
             extends Reducer<Text,Text,Text,Text> {
+        static double sum;
+        static double count;
         public void reduce(Text key, Iterable<Text> values,
                            Context context
         ) throws IOException, InterruptedException {
-            double sum = 0;
-            double i = 0;
+            sum = 0;
+            count = 0;
             for (Text val : values) {
                 double value = new Double(val.toString());
                 sum += value;
-                i += 1;
+                count += 1;
             }
-            double average = sum/i;
+        }
+
+        @Override
+        protected void cleanup(Reducer<Text, Text, Text, Text>.Context context) throws IOException, InterruptedException {
+            double average = sum/count;
             context.write(new Text("Sillhouette average"), new Text(String.valueOf(average)));
         }
     }
@@ -128,7 +134,7 @@ public class sihouette_try_3 {
         //job.setNumReduceTasks(0);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        FileInputFormat.addInputPath(job, new Path("Task4/Task4Output9/part-r-00000"));
+        FileInputFormat.addInputPath(job, new Path("Task4/Task4Output24/part-r-00000"));
         FileOutputFormat.setOutputPath(job, new Path("Silhouette"));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
